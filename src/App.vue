@@ -1,7 +1,10 @@
 <template>
-<v-container fluid class="grey lighten-5">
+<!-- <v-container fluid class="grey lighten-5"> -->
+  <div id="app">
     <router-view />
-</v-container>
+
+  </div>
+<!-- </v-container> -->
 </template>
 
 
