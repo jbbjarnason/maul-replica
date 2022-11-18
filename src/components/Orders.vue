@@ -18,10 +18,10 @@
                     <v-col>
                         <v-card>
                             <v-card-title>
-                                <b>{{ Weekday(order.WeekdayNumber) }}:</b>&nbsp;{{ order.ShortDescriptionByLang.en }}
+                                <b>{{ Weekday(order.WeekdayNumber) }}:</b>&nbsp;{{ order.ShortDescriptionByLang[user.english ? 'en' : 'is'] }}
                             </v-card-title>
                             <v-card-subtitle><b>{{ order.RestaurantName }}</b></v-card-subtitle>
-                            <v-card-text>{{ order.DescriptionByLang.en }}</v-card-text>
+                            <v-card-text>{{ order.DescriptionByLang[user.english ? 'en' : 'is'] }}</v-card-text>
                         </v-card>
                     </v-col>
                 </v-row>

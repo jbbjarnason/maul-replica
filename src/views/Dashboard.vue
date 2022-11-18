@@ -17,6 +17,7 @@
               </v-list-item>
             </v-list>
           </v-toolbar-title>
+          <v-btn value="english" @click="user.english = !user.english" text>{{ user.english ? "english" : "íslenska" }}</v-btn>
           <v-spacer></v-spacer>
           <v-app-bar-nav-icon @click.stop="drawer = !drawer" class="hidden-md-and-up"></v-app-bar-nav-icon>
           <v-toolbar-items class="hidden-sm-and-down">
@@ -141,6 +142,7 @@ export default {
         token: this.$route.params.token,
         uuid: this.$route.params.uuid,
         location: this.$route.params.location,
+        english: false,
       },
       drawer: false, // Hide mobile side menu by default
     }
@@ -162,7 +164,7 @@ export default {
   },
   provide: function () {
     return {
-      user: this.user
+      user: this.user,
     }
   }
 }

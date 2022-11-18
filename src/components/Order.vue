@@ -42,11 +42,11 @@
                             <v-col>
                                 <v-card v-if="renderComponent" @click="SelectItem(dayIndex, dishIndex)"
                                     :color="CardColor(dayIndex, dishIndex)">
-                                    <v-card-title><b>{{ dish.Diet }}:</b>&nbsp;{{ dish.ShortDescription.en }}</v-card-title>
+                                    <v-card-title><b>{{ dish.Diet }}:</b>&nbsp;{{ dish.ShortDescription[user.english ? 'en' : 'is'] }}</v-card-title>
                                     <v-card-subtitle><b>{{ dish.RestaurantName }}</b></v-card-subtitle>
                                     <v-card-text>
                                         <v-row>
-                                            <v-col>{{ dish.Description.en }}</v-col>
+                                            <v-col>{{ dish.Description[user.english ? 'en' : 'is'] }}</v-col>
                                         </v-row>
                                         <v-row v-if="dish.Allergens.length > 0">
                                             <v-col>Allergies: {{ dish.Allergens.toString() }}</v-col>
@@ -70,7 +70,7 @@
 <script>
 import $ from 'jquery'
 export default {
-    name: 'About',
+    name: 'Order',
     inject: ['user'],
     data() {
         return {
@@ -140,7 +140,7 @@ export default {
                 this.selectedYear += 1;
                 this.selectedWeek = 1;
             }
-            if (this.selectedWeek < 52) {
+            if (this.selectedWeek < 1) {
                 this.selectedYear -= 1;
                 this.selectedWeek = 52;
             }
