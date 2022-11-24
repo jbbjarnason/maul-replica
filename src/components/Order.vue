@@ -200,7 +200,8 @@ export default {
                     Description: dish.Description.is,
                     ShortDescription: dish.ShortDescription.is,
                     WeekdayNumber: String(WeekdayNumber),
-                    SelfPickup: false, // todo 
+                    SelfPickup: false, // todo
+                    MealTime: "Lunch", // todo
                     DescriptionByLang: dish.Description,
                     ShortDescriptionByLang: dish.ShortDescription,
                 }
