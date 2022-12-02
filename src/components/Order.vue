@@ -186,6 +186,7 @@ export default {
                 UserId: this.user.uuid,
                 Email: this.user.email,
                 IsoWeek: this.selectedYear + "-W" + this.selectedWeek,
+                MealTime: "Lunch", // todo
                 Order: {}
             };
             for (const key in this.selectedItems) {
@@ -201,7 +202,6 @@ export default {
                     ShortDescription: dish.ShortDescription.is,
                     WeekdayNumber: String(WeekdayNumber),
                     SelfPickup: false, // todo
-                    MealTime: "Lunch", // todo
                     DescriptionByLang: dish.Description,
                     ShortDescriptionByLang: dish.ShortDescription,
                 }
