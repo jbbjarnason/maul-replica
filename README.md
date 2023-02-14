@@ -1,6 +1,6 @@
 # vue-proj
 
-Please also note that I cannot be held responsible for any misuse of this website.
+Please note that I cannot be held responsible for any misuse of this website.
 
 ## Project setup
 ```
