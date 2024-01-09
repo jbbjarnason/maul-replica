@@ -154,7 +154,7 @@ export default {
                     request.setRequestHeader("authorization", "Bearer " + self.user.token);
                 },
                 dataType: "json",
-                url: "https://dev-api.maul.is/location/" + self.user.location + "/menus/" + self.selectedYear + "-W" + self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek,
+                url: "https://dev-api.maul.is/location/" + self.user.location + "/menus/" + self.selectedYear + "-W" + (self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek),
                 success: function (obj) {
                     self.menu = obj[0].Menu;
                 }
