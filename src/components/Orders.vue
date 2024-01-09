@@ -105,7 +105,7 @@ export default {
                     request.setRequestHeader("authorization", "Bearer " + self.user.token);
                 },
                 dataType: "json",
-                url: "https://dev-api.maul.is/users/" + self.user.uuid + "/orders/" + self.selectedYear + "-W" + self.selectedWeek,
+                url: "https://dev-api.maul.is/users/" + self.user.uuid + "/orders/" + self.selectedYear + "-W" + (self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek),
                 success: function (obj) {
                     self.orders = Object.keys(obj).map((key) => obj[key]);
                 }
