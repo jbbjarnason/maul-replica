@@ -185,7 +185,7 @@ export default {
             let data = {
                 UserId: this.user.uuid,
                 Email: this.user.email,
-                IsoWeek: this.selectedYear + "-W" + this.selectedWeek,
+                IsoWeek: this.selectedYear + "-W" + (this.selectedWeek < 10 ? `0${this.selectedWeek}` : this.selectedWeek),
                 MealTime: "Lunch", // todo
                 Order: {}
             };
