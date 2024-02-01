@@ -99,6 +99,10 @@ export default {
                 return "Thursday";
             } else if (WeekdayNumber == 5) {
                 return "Friday";
+            } else if (WeekdayNumber == 6) {
+                return "Saturday";
+            } else if (WeekdayNumber == 7) {
+                return "Sunday";
             }
             return "Unknown";
         },
@@ -156,6 +160,7 @@ export default {
                 dataType: "json",
                 url: "https://dev-api.maul.is/location/" + self.user.location + "/menus/" + self.selectedYear + "-W" + (self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek),
                 success: function (obj) {
+                    console.log("obj is:", obj);
                     self.menu = obj[0].Menu;
                 }
             });

@@ -21,3 +21,9 @@ npm run build
 ```
 npm run lint
 ```
+
+
+### Development
+With recent node versions a ssl legacy is required, todo fix :grinning:
+
+`export NODE_OPTIONS=--openssl-legacy-provider`
