@@ -6,9 +6,9 @@
         <!-- Start of app toolbar -->
         <v-toolbar>
           <v-toolbar-title class="text-h6">
-            <v-list>
+            <v-list style="padding: 0">
               <v-list-item link>
-                <v-list-item-content>
+                <v-list-item-content style="padding: 0">
                   <v-list-item-title>
                     {{ user.name || 'Name' }}
                   </v-list-item-title>
