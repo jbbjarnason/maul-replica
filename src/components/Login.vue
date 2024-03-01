@@ -18,7 +18,7 @@
                                  placeholder="password" required></v-text-field>
 
                               <v-text-field v-if="isRegister" v-model="confirmPassword" name="confirmPassword"
-                                 label="Confirm Password" type="password" placeholder="cocnfirm password" required>
+                                 label="Confirm Password" type="password" placeholder="confirm password" required>
                               </v-text-field>
                               <div class="red--text"> {{ errorMessage }}</div>
                               <v-btn type="submit" class="mt-4" color="primary" value="log in">Login</v-btn>

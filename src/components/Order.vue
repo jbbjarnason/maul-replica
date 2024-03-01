@@ -3,13 +3,8 @@
         <v-dialog v-model="dialog" max-width="290">
             <v-card>
                 <v-card-title class="text-h5">
-                    Order successfull
+                    Order successful
                 </v-card-title>
-
-                <v-card-text>
-                    Todo display order
-                </v-card-text>
-
                 <v-card-actions>
                     <v-spacer></v-spacer>
 
@@ -33,15 +28,16 @@
                         <v-btn @click="OffsetWeek(1)">Next week</v-btn>
                     </v-col>
                 </v-row>
-                <v-row v-for="(dayMenu, dayIndex) in menu" :key="`dayMenu-${dayIndex}`">
+
+                <v-row v-for="dayIndex in 5" :key="`dayMenu-${dayIndex}`">
                     <v-col>
-                        <v-row v-if="dayMenu.length > 0">
-                            <h1>{{ Weekday(dayIndex + 1) }}</h1>
+                        <v-row v-if="dayIndex > 0">
+                            <h1>{{ Weekday(dayIndex) }}</h1>
                         </v-row>
-                        <v-row v-for="(dish, dishIndex)  in dayMenu" :key="`dish-${dishIndex}`">
+                        <v-row v-for="dish in GetMenuForWeekday(dayIndex)" :key="`${dish.MenuItemId}`">
                             <v-col>
-                                <v-card v-if="renderComponent" @click="SelectItem(dayIndex, dishIndex)"
-                                    :color="CardColor(dayIndex, dishIndex)">
+                                <v-card v-if="renderComponent" @click="SelectItem(dayIndex, dish)"
+                                    :color="CardColor(dayIndex, dish.MenuItemId)">
                                     <v-card-title><b>{{ dish.Diet }}:</b>&nbsp;{{ dish.ShortDescription[user.english ? 'en' : 'is'] }}</v-card-title>
                                     <v-card-subtitle><b>{{ dish.RestaurantName }}</b></v-card-subtitle>
                                     <v-card-text>
@@ -107,10 +103,11 @@ export default {
             return "Unknown";
         },
         CurrentWeekNumber() {
-            let currentDate = new Date();
-            let startDate = new Date(currentDate.getFullYear(), 0, 1);
-            var days = Math.floor((currentDate - startDate) /
-                (24 * 60 * 60 * 1000));
+            const currentDate = new Date();
+            const startDate = new Date(currentDate.getFullYear(), 0, 1);
+            const daysBeforeMenuIsAvailable = 4; // Menu for a week is available on Thursdays
+            const days = Math.floor((currentDate - startDate) /
+                (24 * 60 * 60 * 1000)) + daysBeforeMenuIsAvailable;
 
             return Math.ceil(days / 7);
         },
@@ -150,6 +147,9 @@ export default {
             }
             this.Update();
         },
+        GetMenuForWeekday(weekdayNumber) {
+            return this.menu.filter(m => m.WeekdayNumber == weekdayNumber)
+        },
         Update() {
             var self = this;
             this.selectedItems = {};
@@ -165,13 +165,13 @@ export default {
                 }
             });
         },
-        SelectItem(dayIndex, dishIndex) {
-            this.selectedItems[dayIndex] = dishIndex;
+        SelectItem(dayIndex, dish) {
+            this.selectedItems[dayIndex] = dish;
             this.ForceRerender();
         },
-        CardColor(dayIndex, dishIndex) {
+        CardColor(dayIndex, dishId) {
             if (this.selectedItems[dayIndex] !== undefined) {
-                if (this.selectedItems[dayIndex] == dishIndex) {
+                if (this.selectedItems[dayIndex].MenuItemId == dishId) {
                     return "green";
                 }
             }
@@ -194,34 +194,39 @@ export default {
                 MealTime: "Lunch", // todo
                 Order: {}
             };
-            for (const key in this.selectedItems) {
-                let dish = this.menu[key][this.selectedItems[key]];
-                console.log(dish);
-                let WeekdayNumber = Number(key) + 1;
-                data.Order[WeekdayNumber] = {
-                    MenuItemId: dish.MenuItemId,
-                    RestaurantId: dish.RestaurantId,
-                    RestaurantName: dish.RestaurantName,
-                    Diet: dish.Diet,
-                    Description: dish.Description.is,
-                    ShortDescription: dish.ShortDescription.is,
-                    WeekdayNumber: String(WeekdayNumber),
-                    SelfPickup: false, // todo
-                    DescriptionByLang: dish.Description,
-                    ShortDescriptionByLang: dish.ShortDescription,
+            for (const dayIndex in this.selectedItems) {
+                let dish = this.selectedItems[dayIndex];
+                if (dish) {
+                    let WeekdayNumber = Number(dayIndex);
+                    console.log(dish)
+                    data.Order[WeekdayNumber] = {
+                        MenuItemId: dish.MenuItemId,
+                        RestaurantId: dish.RestaurantId,
+                        RestaurantName: dish.RestaurantName,
+                        Diet: dish.Diet,
+                        DietTypes: dish.DietTypes,
+                        Description: dish.Description.is,
+                        ShortDescription: dish.ShortDescription.is,
+                        WeekdayNumber: String(WeekdayNumber),
+                        SelfPickup: false, // todo
+                        DescriptionByLang: dish.Description,
+                        ShortDescriptionByLang: dish.ShortDescription,
+                        Allergens: dish.Allergens,
+                        AllergensProvided: dish.AllergensProvided,
+                    }
                 }
             }
             console.log(data);
             var self = this;
             $.ajax({
-                beforeSend: function (request) {
+                beforeSend: (request) => {
                     request.setRequestHeader("authorization", "Bearer " + self.user.token);
                 },
                 type: "POST",
                 dataType: "json",
                 url: "https://dev-api.maul.is/orders",
                 data: JSON.stringify(data),
-                success: function (response) {
+                success: (response) => {
                     console.log("Success", response);
                     self.dialog = true;
                 },
