@@ -257,7 +257,6 @@ export default {
                 if (dish) {
                     const WeekdayNumber = Number(dayIndex);
                     const CandidateMenuItemIds = this.menu.filter(x => x.WeekdayNumber === WeekdayNumber).map(x => x.MenuItemId);
-                    console.log(dish)
                     data.Order[WeekdayNumber] = {
                         Allergens: dish.Allergens,
                         AllergensProvided: dish.AllergensProvided,
@@ -274,7 +273,6 @@ export default {
                     }
                 }
             }
-            console.log(data);
             var self = this;
             $.ajax({
                 beforeSend: (request) => {
