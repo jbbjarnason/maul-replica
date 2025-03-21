@@ -91,14 +91,21 @@ export default {
                   dataType: "json",
                   url: "https://dev-api.maul.is/users/" + idToken.payload.sub,
                   success: function (obj) {
+                     // Get current day (0 = Sunday, 1 = Monday, etc.)
+                     const currentDay = new Date().getDay();
+                     // Redirect to orders if Monday-Wednesday (1-3), otherwise to order
+                     const redirectPath = currentDay >= 1 && currentDay <= 3 ? 'orders' : 'order';
+                     
                      self.$router.replace({
-                        name: "dashboard", params: {
+                        name: "dashboard", 
+                        params: {
                            email: idToken.payload.email,
                            name: idToken.payload.name,
                            uuid: idToken.payload.sub,
                            token: accessToken,
                            location: obj.LocationId,
-                        }
+                        },
+                        query: { redirect: redirectPath }
                      });
                   }
                });
