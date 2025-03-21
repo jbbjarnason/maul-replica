@@ -23,13 +23,16 @@
 
                 <v-row v-for="order in orders" :key="order.WeekdayNumber">
                     <v-col>
-                        <v-card>
-                            <v-card-title>
-                                <b>{{ Weekday(order.WeekdayNumber) }}:</b>&nbsp;{{ order.ShortDescriptionByLang[userData.english ? 'en' : 'is'] }}
-                            </v-card-title>
-                            <v-card-subtitle><b>{{ order.RestaurantName }}</b></v-card-subtitle>
-                            <v-card-text>{{ order.DescriptionByLang[userData.english ? 'en' : 'is'] }}</v-card-text>
-                        </v-card>
+                        <v-row>
+                            <h2>{{ Weekday(order.WeekdayNumber) }}</h2>
+                        </v-row>
+                        <v-row>
+                            <menu-card
+                                :dish="order"
+                                :lang="userData.english ? 'en' : 'is'"
+                                width="100%"
+                            />
+                        </v-row>
                     </v-col>
                 </v-row>
             </v-container>
@@ -39,7 +42,12 @@
 
 <script>
 import $ from 'jquery'
+import MenuCard from './MenuCard.vue'
+
 export default {
+    components: {
+        MenuCard
+    },
     data() {
         return {
             orders: [],
@@ -133,12 +141,14 @@ export default {
                     request.setRequestHeader("authorization", "Bearer " + self.userData.token);
                 },
                 dataType: "json",
-                url: "https://dev-api.maul.is/users/" + self.userData.uuid + "/orders/" + self.selectedYear + "-W" + (self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek),
+                url: `https://dev-api.maul.is/users/${self.userData.uuid}/orders/${self.selectedYear}-W${(self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek)}/v2`,
                 success: function (obj) {
                     if (obj && Array.isArray(Object.keys(obj))) {
                         const orderArray = Object.keys(obj).map((key) => obj[key]);
                         if (orderArray.length > 0) {
-                            self.orders = orderArray;
+                            self.orders = orderArray.sort((a, b) => 
+                                Number(a.WeekdayNumber) - Number(b.WeekdayNumber)
+                            );
                         } else {
                             self.errorMessage = `No orders found for: Year ${self.selectedYear}, Week ${self.selectedWeek}`;
                         }

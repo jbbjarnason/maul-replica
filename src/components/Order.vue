@@ -34,57 +34,17 @@
                         <v-row v-if="dayIndex > 0 && GetMenuForWeekday(dayIndex).length > 0">
                             <h1>{{ Weekday(dayIndex) }}</h1>
                         </v-row>
-                        <v-row v-if="renderComponent" >
-
-                                <v-card @click="SelectItem(dayIndex, dish)"
-                                    :color="CardColor(dayIndex, dish.MenuItemId)"
-                                    v-for="dish in GetMenuForWeekday(dayIndex)" 
-                                    :key="`${dish.MenuItemId}`"
-                                    :style="{ width: '30%', margin: '8px'}"
-                                    class="d-flex flex-column"
-                                >
-                                    <v-card-title>{{ dish.ShortDescriptionByLang[lang] }}</v-card-title>
-                                    <v-card-subtitle><b>{{ dish.RestaurantName }}</b></v-card-subtitle>
-                                    
-                                    <v-card-text class="flex-grow-1">
-                                        <v-row>
-                                            <v-col>{{ dish.DescriptionByLang[lang] }}</v-col>
-                                        </v-row>
-                                        <v-row v-if="dish.Allergens.length > 0">
-                                            <v-col>
-                                                <v-chip
-                                                    v-for="allergen in dish.Allergens"
-                                                    :key="allergen"
-                                                    color="grey lighten-4"
-                                                    class="mr-2 mb-2"
-                                                    small
-                                                    outlined
-                                                >
-                                                    <v-icon left small color="grey">mdi-alert-circle</v-icon>
-                                                    <span class="grey--text">{{ allergen }}</span>
-                                                </v-chip>
-                                            </v-col>
-                                        </v-row>
-                                    </v-card-text>
-
-                                    <v-card-actions class="pt-0">
-                                        <v-row v-if="dish.DietTypes.length > 0" justify="center">
-                                            <v-chip
-                                                v-for="diet in dish.DietTypes"
-                                                :key="diet"
-                                                :color="diet === 'omnivore' ? '#FFE4E1' : 
-                                                        diet === 'vegan' ? '#E0F4E0' : 
-                                                        diet === 'pescatarian' ? '#E6F3FF' : 
-                                                        diet === 'low-carb' ? '#FFF0DB' : '#F0F0F0'"
-                                                class="mr-2"
-                                                small
-                                            >
-                                                {{ diet.charAt(0).toUpperCase() + diet.slice(1) }}
-                                            </v-chip>
-                                        </v-row>
-                                    </v-card-actions>
-                                </v-card>
-                            </v-row>
+                        <v-row v-if="renderComponent">
+                            <menu-card
+                                v-for="dish in GetMenuForWeekday(dayIndex)"
+                                :key="dish.MenuItemId"
+                                :dish="dish"
+                                :lang="lang"
+                                :color="CardColor(dayIndex, dish.MenuItemId)"
+                                width="30%"
+                                @click="SelectItem(dayIndex, dish)"
+                            />
+                        </v-row>
                     </v-col>
                 </v-row>
                 <v-row>
@@ -102,8 +62,13 @@
 
 <script>
 import $ from 'jquery'
+import MenuCard from './MenuCard.vue'
+
 export default {
     name: 'Order',
+    components: {
+        MenuCard
+    },
     inject: ['user'],
     data() {
         return {
@@ -116,6 +81,7 @@ export default {
             lang: 'is',
             errorMessage: '',
             userData: null,
+            existingOrders: [],
         }
     },
     mounted() {
@@ -208,6 +174,9 @@ export default {
                         self.menu = obj[0].Menu;
                         if (!self.menu || self.menu.length === 0) {
                             self.errorMessage = `No menu found for: Year ${self.selectedYear}, Week ${self.selectedWeek}, Location ${self.userData.location}`;
+                        } else {
+                            // Check if there is an existing order
+                            self.FetchExistingOrders();
                         }
                     } else {
                         self.menu = [];
@@ -221,13 +190,38 @@ export default {
                 }
             });
         },
+        FetchExistingOrders() {
+            var self = this;
+            $.ajax({
+                beforeSend: function (request) {
+                    request.setRequestHeader("authorization", "Bearer " + self.userData.token);
+                },
+                dataType: "json",
+                url: `https://dev-api.maul.is/users/${self.userData.uuid}/orders/${self.selectedYear}-W${(self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek)}/v2`,
+                success: function (obj) {
+                    if (obj && Array.isArray(Object.keys(obj))) {
+                        const orderArray = Object.keys(obj).map((key) => obj[key]);
+                        if (orderArray.length > 0) {
+                            // Populate selectedItems with existing order menu items
+                            orderArray.forEach(order => {
+                                self.selectedItems[order.WeekdayNumber] = order;
+                            });
+                            self.ForceRerender();
+                        }
+                    }
+                },
+                error: function(err) {
+                    console.error('Failed to fetch existing orders:', err);
+                }
+            });
+        },
         SelectItem(dayIndex, dish) {
             this.selectedItems[dayIndex] = dish;
             this.ForceRerender();
         },
         CardColor(dayIndex, dishId) {
-            if (this.selectedItems[dayIndex] !== undefined) {
-                if (this.selectedItems[dayIndex].MenuItemId == dishId) {
+            if (this.selectedItems[dayIndex]) {
+                if (this.selectedItems[dayIndex].MenuItemId === dishId) {
                     return "green";
                 }
             }
