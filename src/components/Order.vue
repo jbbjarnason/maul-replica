@@ -18,44 +18,81 @@
             <v-container>
                 <h1>Menu for week {{ selectedWeek }}</h1>
                 <v-row align="center">
-                    <v-col align="right">
-                        <v-btn @click="OffsetWeek(-1)">Previous week</v-btn>
-                    </v-col>
                     <v-col align="center">
                         <h3>{{ GetDateRangeOfWeek(selectedWeek) }}</h3>
                     </v-col>
-                    <v-col align="left">
-                        <v-btn @click="OffsetWeek(1)">Next week</v-btn>
+                </v-row>
+
+                <v-row v-if="errorMessage" align="center">
+                    <v-col align="center">
+                        <v-alert type="error">{{ errorMessage }}</v-alert>
                     </v-col>
                 </v-row>
 
                 <v-row v-for="dayIndex in 5" :key="`dayMenu-${dayIndex}`">
                     <v-col>
-                        <v-row v-if="dayIndex > 0">
+                        <v-row v-if="dayIndex > 0 && GetMenuForWeekday(dayIndex).length > 0">
                             <h1>{{ Weekday(dayIndex) }}</h1>
                         </v-row>
-                        <v-row v-for="dish in GetMenuForWeekday(dayIndex)" :key="`${dish.MenuItemId}`">
-                            <v-col>
-                                <v-card v-if="renderComponent" @click="SelectItem(dayIndex, dish)"
-                                    :color="CardColor(dayIndex, dish.MenuItemId)">
-                                    <v-card-title><b>{{ dish.Diet }}:</b>&nbsp;{{ dish.ShortDescription[user.english ? 'en' : 'is'] }}</v-card-title>
+                        <v-row v-if="renderComponent" >
+
+                                <v-card @click="SelectItem(dayIndex, dish)"
+                                    :color="CardColor(dayIndex, dish.MenuItemId)"
+                                    v-for="dish in GetMenuForWeekday(dayIndex)" 
+                                    :key="`${dish.MenuItemId}`"
+                                    :style="{ width: '30%', margin: '8px'}"
+                                    class="d-flex flex-column"
+                                >
+                                    <v-card-title>{{ dish.ShortDescriptionByLang[lang] }}</v-card-title>
                                     <v-card-subtitle><b>{{ dish.RestaurantName }}</b></v-card-subtitle>
-                                    <v-card-text>
+                                    
+                                    <v-card-text class="flex-grow-1">
                                         <v-row>
-                                            <v-col>{{ dish.Description[user.english ? 'en' : 'is'] }}</v-col>
+                                            <v-col>{{ dish.DescriptionByLang[lang] }}</v-col>
                                         </v-row>
                                         <v-row v-if="dish.Allergens.length > 0">
-                                            <v-col>Allergies: {{ dish.Allergens.toString() }}</v-col>
+                                            <v-col>
+                                                <v-chip
+                                                    v-for="allergen in dish.Allergens"
+                                                    :key="allergen"
+                                                    color="grey lighten-4"
+                                                    class="mr-2 mb-2"
+                                                    small
+                                                    outlined
+                                                >
+                                                    <v-icon left small color="grey">mdi-alert-circle</v-icon>
+                                                    <span class="grey--text">{{ allergen }}</span>
+                                                </v-chip>
+                                            </v-col>
                                         </v-row>
                                     </v-card-text>
+
+                                    <v-card-actions class="pt-0">
+                                        <v-row v-if="dish.DietTypes.length > 0" justify="center">
+                                            <v-chip
+                                                v-for="diet in dish.DietTypes"
+                                                :key="diet"
+                                                :color="diet === 'omnivore' ? '#FFE4E1' : 
+                                                        diet === 'vegan' ? '#E0F4E0' : 
+                                                        diet === 'pescatarian' ? '#E6F3FF' : 
+                                                        diet === 'low-carb' ? '#FFF0DB' : '#F0F0F0'"
+                                                class="mr-2"
+                                                small
+                                            >
+                                                {{ diet.charAt(0).toUpperCase() + diet.slice(1) }}
+                                            </v-chip>
+                                        </v-row>
+                                    </v-card-actions>
                                 </v-card>
-                            </v-col>
-                        </v-row>
+                            </v-row>
                     </v-col>
                 </v-row>
                 <v-row>
                     <v-col>
-                        <v-btn @click="Submit()">Submit order</v-btn>
+                        <v-btn 
+                            @click="Submit()" 
+                            :disabled="Object.keys(selectedItems).length === 0"
+                        >Submit order</v-btn>
                     </v-col>
                 </v-row>
             </v-container>
@@ -76,11 +113,15 @@ export default {
             selectedItems: {},
             renderComponent: true,
             dialog: false,
+            lang: 'is',
+            errorMessage: '',
+            userData: null,
         }
     },
     mounted() {
-        this.selectedWeek = this.CurrentWeekNumber();
+        this.selectedWeek = this.GetAvailableWeekNumber();
         this.selectedYear = new Date().getFullYear();
+        this.userData = { ...this.user };
         this.Update();
     },
     methods: {
@@ -102,14 +143,15 @@ export default {
             }
             return "Unknown";
         },
-        CurrentWeekNumber() {
+        GetAvailableWeekNumber() {
             const currentDate = new Date();
             const startDate = new Date(currentDate.getFullYear(), 0, 1);
-            const daysBeforeMenuIsAvailable = 4; // Menu for a week is available on Thursdays
+            const daysBeforeMenuIsAvailable = 4; // Menu available on Thursdays
             const days = Math.floor((currentDate - startDate) /
                 (24 * 60 * 60 * 1000)) + daysBeforeMenuIsAvailable;
 
-            return Math.ceil(days / 7);
+            // Plus one for next week
+            return Math.ceil(days / 7) + 1;
         },
         GetDateRangeOfWeek(weekNo) {
             Date.prototype.getWeek = function () {
@@ -135,33 +177,47 @@ export default {
             var rangeIsTo = d1.getDate() + "/" + eval(d1.getMonth() + 1) + "/" + d1.getFullYear();
             return rangeIsFrom + " to " + rangeIsTo;
         },
-        OffsetWeek(offset) {
-            this.selectedWeek += offset;
-            if (this.selectedWeek > 52) {
-                this.selectedYear += 1;
-                this.selectedWeek = 1;
-            }
-            if (this.selectedWeek < 1) {
-                this.selectedYear -= 1;
-                this.selectedWeek = 52;
-            }
-            this.Update();
-        },
         GetMenuForWeekday(weekdayNumber) {
             return this.menu.filter(m => m.WeekdayNumber == weekdayNumber)
         },
-        Update() {
+        async Update() {
             var self = this;
             this.selectedItems = {};
+            this.errorMessage = '';
+
+            // Get user info from localStorage if needed
+            const userInfo = localStorage.getItem('user_info');
+            if (userInfo) {
+                this.userData = JSON.parse(userInfo);
+            }
+
+            if (!this.userData || !this.userData.token || !this.userData.location) {
+                console.error('User information is missing');
+                this.$router.replace({ name: 'login' });
+                return;
+            }
+
             $.ajax({
                 beforeSend: function (request) {
-                    request.setRequestHeader("authorization", "Bearer " + self.user.token);
+                    request.setRequestHeader("authorization", "Bearer " + self.userData.token);
                 },
                 dataType: "json",
-                url: "https://dev-api.maul.is/location/" + self.user.location + "/menus/" + self.selectedYear + "-W" + (self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek),
+                url: "https://dev-api.maul.is/location/" + self.userData.location + "/menus/" + self.selectedYear + "-W" + (self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek),
                 success: function (obj) {
-                    console.log("obj is:", obj);
-                    self.menu = obj[0].Menu;
+                    if (obj && Array.isArray(obj) && obj.length > 0) {
+                        self.menu = obj[0].Menu;
+                        if (!self.menu || self.menu.length === 0) {
+                            self.errorMessage = `No menu found for: Year ${self.selectedYear}, Week ${self.selectedWeek}, Location ${self.userData.location}`;
+                        }
+                    } else {
+                        self.menu = [];
+                        self.errorMessage = `No menu found for: Year ${self.selectedYear}, Week ${self.selectedWeek}, Location ${self.userData.location}`;
+                    }
+                },
+                error: function(err) {
+                    console.error('Failed to fetch menu:', err);
+                    self.menu = [];
+                    self.errorMessage = 'Something went wrong, could not fetch menu.';
                 }
             });
         },
@@ -188,31 +244,33 @@ export default {
         },
         Submit() {
             let data = {
-                UserId: this.user.uuid,
-                Email: this.user.email,
+                UserId: this.userData.uuid,
+                Email: this.userData.email,
                 IsoWeek: this.selectedYear + "-W" + (this.selectedWeek < 10 ? `0${this.selectedWeek}` : this.selectedWeek),
                 MealTime: "Lunch", // todo
+                FspId: "maul",
+                MenuId: "variety-a",
                 Order: {}
             };
             for (const dayIndex in this.selectedItems) {
                 let dish = this.selectedItems[dayIndex];
                 if (dish) {
-                    let WeekdayNumber = Number(dayIndex);
+                    const WeekdayNumber = Number(dayIndex);
+                    const CandidateMenuItemIds = this.menu.filter(x => x.WeekdayNumber === WeekdayNumber).map(x => x.MenuItemId);
                     console.log(dish)
                     data.Order[WeekdayNumber] = {
+                        Allergens: dish.Allergens,
+                        AllergensProvided: dish.AllergensProvided,
+                        CandidateMenuItemIds,
+                        DescriptionByLang: dish.DescriptionByLang,
+                        DietTypes: dish.DietTypes,
+                        ImageId: dish.ImageId,
                         MenuItemId: dish.MenuItemId,
                         RestaurantId: dish.RestaurantId,
                         RestaurantName: dish.RestaurantName,
-                        Diet: dish.Diet,
-                        DietTypes: dish.DietTypes,
-                        Description: dish.Description.is,
-                        ShortDescription: dish.ShortDescription.is,
+                        ShortDescriptionByLang: dish.ShortDescriptionByLang,
+                        Temperature: dish.Temperature,
                         WeekdayNumber: String(WeekdayNumber),
-                        SelfPickup: false, // todo
-                        DescriptionByLang: dish.Description,
-                        ShortDescriptionByLang: dish.ShortDescription,
-                        Allergens: dish.Allergens,
-                        AllergensProvided: dish.AllergensProvided,
                     }
                 }
             }
@@ -220,7 +278,7 @@ export default {
             var self = this;
             $.ajax({
                 beforeSend: (request) => {
-                    request.setRequestHeader("authorization", "Bearer " + self.user.token);
+                    request.setRequestHeader("authorization", "Bearer " + self.userData.token);
                 },
                 type: "POST",
                 dataType: "json",
@@ -238,3 +296,19 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.v-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.v-card__text {
+    flex-grow: 1;
+}
+
+.v-card__actions {
+    margin-top: auto;
+    padding-bottom: 16px;
+}
+</style>

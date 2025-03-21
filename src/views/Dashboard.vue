@@ -155,6 +155,11 @@ export default {
     else {
       localStorage.setItem('user_info', JSON.stringify(this.user));
     }
+
+    // Handle initial redirect
+    if (this.$route.query.redirect) {
+      this.$router.push(`/dashboard/${this.$route.query.redirect}`);
+    }
   },
   methods: {
     logout() {

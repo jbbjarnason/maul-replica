@@ -14,14 +14,21 @@
                         <v-btn @click="OffsetWeek(1)">Next week</v-btn>
                     </v-col>
                 </v-row>
+
+                <v-row v-if="errorMessage" align="center">
+                    <v-col align="center">
+                        <v-alert type="error">{{ errorMessage }}</v-alert>
+                    </v-col>
+                </v-row>
+
                 <v-row v-for="order in orders" :key="order.WeekdayNumber">
                     <v-col>
                         <v-card>
                             <v-card-title>
-                                <b>{{ Weekday(order.WeekdayNumber) }}:</b>&nbsp;{{ order.ShortDescriptionByLang[user.english ? 'en' : 'is'] }}
+                                <b>{{ Weekday(order.WeekdayNumber) }}:</b>&nbsp;{{ order.ShortDescriptionByLang[userData.english ? 'en' : 'is'] }}
                             </v-card-title>
                             <v-card-subtitle><b>{{ order.RestaurantName }}</b></v-card-subtitle>
-                            <v-card-text>{{ order.DescriptionByLang[user.english ? 'en' : 'is'] }}</v-card-text>
+                            <v-card-text>{{ order.DescriptionByLang[userData.english ? 'en' : 'is'] }}</v-card-text>
                         </v-card>
                     </v-col>
                 </v-row>
@@ -38,10 +45,21 @@ export default {
             orders: [],
             selectedWeek: 0,
             selectedYear: 0,
+            errorMessage: '',
+            userData: null,
         }
     },
     inject: ['user'],
     mounted() {
+        // Initialize userData with copy of injected user
+        this.userData = { ...this.user };
+        
+        // Check if user info needs to be restored from localStorage
+        const userInfo = localStorage.getItem('user_info');
+        if (userInfo) {
+            this.userData = JSON.parse(userInfo);
+        }
+
         this.selectedWeek = this.CurrentWeekNumber();
         this.selectedYear = new Date().getFullYear();
         this.Update();
@@ -100,14 +118,40 @@ export default {
         Update() {
             var self = this;
             self.orders = [];
+            self.errorMessage = '';
+
+            // Ensure we have valid user info before making the request
+            if (!self.userData || !self.userData.token || !self.userData.uuid) {
+                console.error('User information is missing');
+                // No user info, redirect to login
+                self.$router.replace({ name: 'login' });
+                return;
+            }
+
             $.ajax({
                 beforeSend: function (request) {
-                    request.setRequestHeader("authorization", "Bearer " + self.user.token);
+                    request.setRequestHeader("authorization", "Bearer " + self.userData.token);
                 },
                 dataType: "json",
-                url: "https://dev-api.maul.is/users/" + self.user.uuid + "/orders/" + self.selectedYear + "-W" + (self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek),
+                url: "https://dev-api.maul.is/users/" + self.userData.uuid + "/orders/" + self.selectedYear + "-W" + (self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek),
                 success: function (obj) {
-                    self.orders = Object.keys(obj).map((key) => obj[key]);
+                    if (obj && Array.isArray(Object.keys(obj))) {
+                        const orderArray = Object.keys(obj).map((key) => obj[key]);
+                        if (orderArray.length > 0) {
+                            self.orders = orderArray;
+                        } else {
+                            self.errorMessage = `No orders found for: Year ${self.selectedYear}, Week ${self.selectedWeek}`;
+                        }
+                    } else {
+                        console.error('Unexpected response format:', obj);
+                        self.orders = [];
+                        self.errorMessage = `No orders found for: Year ${self.selectedYear}, Week ${self.selectedWeek}`;
+                    }
+                },
+                error: function(err) {
+                    console.error('Failed to fetch orders:', err);
+                    self.orders = [];
+                    self.errorMessage = 'Something went wrong, could not fetch orders.';
                 }
             });
         }
