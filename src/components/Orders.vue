@@ -3,15 +3,17 @@
         <v-layout>
             <v-container>
                 <h1>My orders for week {{ selectedWeek }}</h1>
-                <v-row align="center">
-                    <v-col align="right">
-                        <v-btn @click="OffsetWeek(-1)">Previous week</v-btn>
-                    </v-col>
+                <v-row align="center" class="mb-4">
                     <v-col align="center">
                         <h3>{{ GetDateRangeOfWeek(selectedWeek) }}</h3>
                     </v-col>
-                    <v-col align="left">
-                        <v-btn @click="OffsetWeek(1)">Next week</v-btn>
+                </v-row>
+                <v-row>
+                    <v-col cols="6" align="center">
+                        <v-btn block @click="OffsetWeek(-1)">Previous week</v-btn>
+                    </v-col>
+                    <v-col cols="6" align="center">
+                        <v-btn block @click="OffsetWeek(1)">Next week</v-btn>
                     </v-col>
                 </v-row>
 
