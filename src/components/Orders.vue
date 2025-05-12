@@ -24,14 +24,18 @@
                 <v-row v-for="order in orders" :key="order.WeekdayNumber">
                     <v-col>
                         <v-row>
-                            <h2>{{ Weekday(order.WeekdayNumber) }}</h2>
+                            <v-col>
+                                <h2 class="day-title">{{ Weekday(order.WeekdayNumber) }}</h2>
+                            </v-col>
                         </v-row>
                         <v-row>
-                            <menu-card
-                                :dish="order"
-                                :lang="userData.english ? 'en' : 'is'"
-                                width="100%"
-                            />
+                            <v-col cols="12" md="6" lg="4">
+                                <menu-card
+                                    :dish="order"
+                                    :lang="userData.english ? 'en' : 'is'"
+                                    width="100%"
+                                />
+                            </v-col>
                         </v-row>
                     </v-col>
                 </v-row>
@@ -168,3 +172,22 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.day-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-bottom: 2px solid #e0e0e0;
+    color: #424242;
+}
+
+@media (max-width: 600px) {
+    .day-title {
+        font-size: 1.3rem;
+        padding: 8px 12px;
+        margin: 12px 0;
+    }
+}
+</style>

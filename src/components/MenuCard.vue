@@ -1,11 +1,11 @@
 <template>
     <v-card
         :color="color"
-        class="d-flex flex-column"
+        class="menu-card d-flex flex-column"
         :style="{ width: width, margin: '8px'}"
         @click="$emit('click')"
     >
-        <v-card-title>{{ dish.ShortDescriptionByLang[lang] }}</v-card-title>
+        <v-card-title class="text-h6">{{ dish.ShortDescriptionByLang[lang] }}</v-card-title>
         <v-card-subtitle><b>{{ dish.RestaurantName }}</b></v-card-subtitle>
         
         <v-card-text class="flex-grow-1">
@@ -35,7 +35,7 @@
                     v-for="diet in dish.DietTypes"
                     :key="diet"
                     :color="dietTypeColors[diet] || '#F0F0F0'"
-                    class="mr-2"
+                    class="mr-2 mb-2"
                     small
                 >
                     {{ diet.charAt(0).toUpperCase() + diet.slice(1) }}
@@ -80,9 +80,14 @@ export default {
 </script>
 
 <style scoped>
-.v-card {
+.menu-card {
     display: flex;
     flex-direction: column;
+    transition: transform 0.2s ease-in-out;
+}
+
+.menu-card:hover {
+    transform: translateY(-2px);
 }
 
 .v-card__text {
@@ -92,5 +97,24 @@ export default {
 .v-card__actions {
     margin-top: auto;
     padding-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+    .menu-card {
+        margin: 4px !important;
+    }
+    
+    .v-card__title {
+        font-size: 1.1rem !important;
+        padding: 12px !important;
+    }
+    
+    .v-card__subtitle {
+        padding: 0 12px 12px !important;
+    }
+    
+    .v-card__text {
+        padding: 12px !important;
+    }
 }
 </style>
