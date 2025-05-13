@@ -4,7 +4,7 @@ import Login from '../components/Login.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Orders from '../components/Orders.vue'
 import Order from '../components/Order.vue'
-import About from '../components/About.vue'
+import Preferences from '../views/Preferences.vue'
 
 Vue.use(Router)
 
@@ -30,8 +30,8 @@ export default new Router({
           component: Orders,
         },
         {
-          path: 'about',
-          component: About,
+          path: 'preferences',
+          component: Preferences,
         }
       ]
     }

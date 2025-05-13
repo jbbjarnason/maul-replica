@@ -134,7 +134,7 @@ export default {
       items: [
         { title: 'My Orders', link: 'orders' },
         { title: 'Order', link: 'order' },
-        { title: 'About', link: 'about' },
+        { title: 'Preferences', link: 'preferences' },
       ],
       user: {
         name: this.$route.params.name,
