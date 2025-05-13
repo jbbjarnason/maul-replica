@@ -29,6 +29,39 @@
                     </v-col>
                 </v-row>
 
+                <!-- Favorites Section -->
+                <v-row v-if="hasFavoriteItems" class="mt-4">
+                    <v-col>
+                        <v-row>
+                            <h2>Favorite Restaurants</h2>
+                        </v-row>
+                        <v-row>
+                            <v-col cols="12">
+                                <div class="pa-2">
+                                    <div class="d-flex flex-wrap">
+                                        <div 
+                                            v-for="dish in favoriteItems" 
+                                            :key="dish.MenuItemId"
+                                            class="flex-grow-1 mb-4 mr-4"
+                                            style="min-width: calc(50% - 16px); max-width: calc(50% - 16px);"
+                                        >
+                                            <menu-card
+                                                :dish="dish"
+                                                :lang="lang"
+                                                width="100%"
+                                                size="small"
+                                                :day="dish.day"
+                                                :color="CardColor(dish.WeekdayNumber, dish.MenuItemId)"
+                                                @click="SelectItem(dish.WeekdayNumber, dish)"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </v-col>
+                        </v-row>
+                    </v-col>
+                </v-row>
+
                 <v-row v-for="dayIndex in 5" :key="`dayMenu-${dayIndex}`">
                     <v-col>
                         <v-row v-if="dayIndex > 0 && GetMenuForWeekday(dayIndex).length > 0">
@@ -63,6 +96,7 @@
 <script>
 import $ from 'jquery'
 import MenuCard from './MenuCard.vue'
+import { preferencesStore } from '../plugins/preferences'
 
 export default {
     name: 'Order',
@@ -82,6 +116,23 @@ export default {
             errorMessage: '',
             userData: null,
             existingOrders: [],
+        }
+    },
+    computed: {
+        favoriteItems() {
+            const favorites = preferencesStore.getFavorites();
+            const favoriteOrders = this.menu.filter(dish => 
+                favorites.some(fav => fav.id === dish.RestaurantId)
+            );
+            
+            // Add day information to each order
+            return favoriteOrders.map(dish => ({
+                ...dish,
+                day: this.Weekday(dish.WeekdayNumber)
+            }));
+        },
+        hasFavoriteItems() {
+            return this.favoriteItems.length > 0;
         }
     },
     mounted() {

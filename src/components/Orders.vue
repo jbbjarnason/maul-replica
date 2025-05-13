@@ -23,22 +23,24 @@
                     </v-col>
                 </v-row>
 
-                <v-row v-for="order in orders" :key="order.WeekdayNumber">
-                    <v-col>
-                        <v-row>
-                            <v-col>
-                                <h2 class="day-title">{{ Weekday(order.WeekdayNumber) }}</h2>
-                            </v-col>
-                        </v-row>
-                        <v-row>
-                            <v-col cols="12" md="6" lg="4">
-                                <menu-card
-                                    :dish="order"
-                                    :lang="userData.english ? 'en' : 'is'"
-                                    width="100%"
-                                />
-                            </v-col>
-                        </v-row>
+                <v-row>
+                    <v-col 
+                        v-for="order in orders" 
+                        :key="order.WeekdayNumber"
+                        cols="12"
+                        md="6"
+                        lg="4"
+                    >
+                        <div class="h-100">
+                            <div class="day-title py-2">
+                                {{ Weekday(order.WeekdayNumber) }}
+                            </div>
+                            <menu-card
+                                :dish="order"
+                                :lang="userData.english ? 'en' : 'is'"
+                                width="100%"
+                            />
+                        </div>
                     </v-col>
                 </v-row>
             </v-container>
@@ -61,7 +63,10 @@ export default {
             selectedYear: 0,
             errorMessage: '',
             userData: null,
+            activeDay: null,
         }
+    },
+    computed: {
     },
     inject: ['user'],
     mounted() {
@@ -177,19 +182,20 @@ export default {
 
 <style scoped>
 .day-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    padding: 12px 16px;
-    margin: 16px 0;
-    border-bottom: 2px solid #e0e0e0;
     color: #424242;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.h-100 {
+    height: 100%;
 }
 
 @media (max-width: 600px) {
     .day-title {
-        font-size: 1.3rem;
+        font-size: 1.1rem;
         padding: 8px 12px;
-        margin: 12px 0;
     }
 }
 </style>

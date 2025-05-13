@@ -2,7 +2,7 @@
     <v-card
         :color="color"
         class="menu-card d-flex flex-column"
-        :style="{ width: width, margin: '8px'}"
+        :style="{ width: width }"
         @click="$emit('click')"
     >
         <v-card-title class="text-h6">{{ dish.ShortDescriptionByLang[lang] }}</v-card-title>
@@ -16,7 +16,7 @@
             >mdi-star</v-icon>
         </v-card-subtitle>
         
-        <v-card-text class="flex-grow-1">
+        <v-card-text v-if="size === 'normal'" class="flex-grow-1">
             <v-row>
                 <v-col>{{ dish.DescriptionByLang[lang] }}</v-col>
             </v-row>
@@ -37,7 +37,7 @@
             </v-row>
         </v-card-text>
 
-        <v-card-actions class="pt-0">
+        <v-card-actions v-if="size === 'normal'" class="pt-0">
             <v-row v-if="dish.DietTypes.length > 0" justify="center">
                 <v-chip
                     v-for="diet in dish.DietTypes"
@@ -84,6 +84,17 @@
                 </v-list>
             </v-menu>
         </v-card-actions>
+
+        <div v-if="day" class="day-indicator">
+            <v-chip
+                small
+                outlined
+                color="primary"
+                class="ma-2"
+            >
+                {{ day }}
+            </v-chip>
+        </div>
     </v-card>
 </template>
 
@@ -108,6 +119,15 @@ export default {
         width: {
             type: String,
             default: '30%'
+        },
+        size: {
+            type: String,
+            default: 'normal',
+            validator: value => ['small', 'normal'].includes(value)
+        },
+        day: {
+            type: String,
+            default: null
         }
     },
     data() {
@@ -155,6 +175,7 @@ export default {
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease-in-out;
+    position: relative;
 }
 
 .menu-card:hover {
@@ -168,6 +189,20 @@ export default {
 .v-card__actions {
     margin-top: auto;
     padding-bottom: 16px;
+}
+
+.day-indicator {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    z-index: 1;
+}
+
+.v-card__title,
+.v-card__subtitle {
+    word-break: normal;
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 @media (max-width: 600px) {
