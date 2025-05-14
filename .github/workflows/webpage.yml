@@ -23,6 +23,7 @@ jobs:
       run: npm run build
       env:
         NODE_OPTIONS: --openssl-legacy-provider
+        DEPLOY_ENV: GH_PAGES
     - uses: actions/upload-pages-artifact@v3
       with:
         path: ./dist
