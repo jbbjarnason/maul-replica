@@ -5,6 +5,12 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-22.04
+    
+    # Add required permissions for the build job
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
 
     steps:
     - uses: actions/checkout@v3
