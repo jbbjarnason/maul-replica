@@ -38,12 +38,10 @@
                         <v-row>
                             <v-col cols="12">
                                 <div class="pa-2">
-                                    <div class="d-flex flex-wrap">
+                                    <div class="menu-grid favorites-grid">
                                         <div 
                                             v-for="dish in favoriteItems" 
                                             :key="dish.MenuItemId"
-                                            class="flex-grow-1 mb-4 mr-4"
-                                            style="min-width: calc(50% - 16px); max-width: calc(50% - 16px);"
                                         >
                                             <menu-card
                                                 :dish="dish"
@@ -65,18 +63,24 @@
                 <v-row v-for="dayIndex in 5" :key="`dayMenu-${dayIndex}`">
                     <v-col>
                         <v-row v-if="dayIndex > 0 && GetMenuForWeekday(dayIndex).length > 0">
-                            <h1>{{ Weekday(dayIndex) }}</h1>
+                            <v-col cols="12">
+                                <h1 class="weekday-title">{{ Weekday(dayIndex) }}</h1>
+                            </v-col>
                         </v-row>
                         <v-row v-if="renderComponent">
-                            <menu-card
-                                v-for="dish in GetMenuForWeekday(dayIndex)"
-                                :key="dish.MenuItemId"
-                                :dish="dish"
-                                :lang="lang"
-                                :color="CardColor(dayIndex, dish.MenuItemId)"
-                                width="30%"
-                                @click="SelectItem(dayIndex, dish)"
-                            />
+                            <v-col cols="12">
+                                <div class="menu-grid">
+                                    <menu-card
+                                        v-for="dish in GetMenuForWeekday(dayIndex)"
+                                        :key="dish.MenuItemId"
+                                        :dish="dish"
+                                        :lang="lang"
+                                        :color="CardColor(dayIndex, dish.MenuItemId)"
+                                        width="100%"
+                                        @click="SelectItem(dayIndex, dish)"
+                                    />
+                                </div>
+                            </v-col>
                         </v-row>
                     </v-col>
                 </v-row>
@@ -219,19 +223,19 @@ export default {
                     request.setRequestHeader("authorization", "Bearer " + self.userData.token);
                 },
                 dataType: "json",
-                url: "https://dev-api.maul.is/location/" + self.userData.location + "/menus/" + self.selectedYear + "-W" + (self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek),
+                url: "https://dev-api.maul.is/location/" + self.userData.location + "/menus/" + this.selectedYear + "-W" + (this.selectedWeek < 10 ? `0${this.selectedWeek}` : this.selectedWeek),
                 success: function (obj) {
                     if (obj && Array.isArray(obj) && obj.length > 0) {
                         self.menu = obj[0].Menu;
                         if (!self.menu || self.menu.length === 0) {
-                            self.errorMessage = `No menu found for: Year ${self.selectedYear}, Week ${self.selectedWeek}, Location ${self.userData.location}`;
+                            self.errorMessage = `No menu found for: Year ${self.selectedYear}, Week ${this.selectedWeek}, Location ${self.userData.location}`;
                         } else {
                             // Check if there is an existing order
                             self.FetchExistingOrders();
                         }
                     } else {
                         self.menu = [];
-                        self.errorMessage = `No menu found for: Year ${self.selectedYear}, Week ${self.selectedWeek}, Location ${self.userData.location}`;
+                        self.errorMessage = `No menu found for: Year ${this.selectedYear}, Week ${this.selectedWeek}, Location ${self.userData.location}`;
                     }
                 },
                 error: function(err) {
@@ -248,7 +252,7 @@ export default {
                     request.setRequestHeader("authorization", "Bearer " + self.userData.token);
                 },
                 dataType: "json",
-                url: `https://dev-api.maul.is/users/${self.userData.uuid}/orders/${self.selectedYear}-W${(self.selectedWeek < 10 ? `0${self.selectedWeek}` : self.selectedWeek)}/v2`,
+                url: `https://dev-api.maul.is/users/${self.userData.uuid}/orders/${this.selectedYear}-W${(this.selectedWeek < 10 ? `0${this.selectedWeek}` : this.selectedWeek)}/v2`,
                 success: function (obj) {
                     if (obj && Array.isArray(Object.keys(obj))) {
                         const orderArray = Object.keys(obj).map((key) => obj[key]);
@@ -353,5 +357,59 @@ export default {
 .v-card__actions {
     margin-top: auto;
     padding-bottom: 16px;
+}
+
+.menu-grid {
+    display: grid;
+    gap: 16px;
+    width: 100%;
+    /* Mobile first - 1 column */
+    grid-template-columns: 1fr;
+}
+
+/* Tablet - 2 columns */
+@media screen and (min-width: 600px) {
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop - 3 columns */
+@media screen and (min-width: 960px) {
+    .menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Favorites grid specific layout */
+.favorites-grid {
+    /* Always 2 columns for favorites on tablet and up */
+    @media screen and (min-width: 600px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.weekday-title {
+    font-size: 2rem;
+    color: #424242;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+    border-bottom: 3px solid #1976d2;
+    position: relative;
+}
+
+.weekday-title::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: #1976d2;
+}
+
+/* Add margin to create space between days */
+.v-row + .v-row {
+    margin-top: 32px;
 }
 </style>
