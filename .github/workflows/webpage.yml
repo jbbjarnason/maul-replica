@@ -5,16 +5,25 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-22.04
+    
+    # Add required permissions for the build job
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
 
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 18.20.x
     - name: Install dependencies
       run: npm install
     - name: Build page
       run: npm run build
+      env:
+        NODE_OPTIONS: --openssl-legacy-provider
+        DEPLOY_ENV: GH_PAGES
     - uses: actions/upload-pages-artifact@v3
       with:
         path: ./dist
